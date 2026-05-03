@@ -13,7 +13,10 @@ async function tg(method: string, body: object) {
     headers: { "Content-Type": "application/json" },
     body:    JSON.stringify(body),
   });
-  if (!res.ok) console.error(`[bot] ${method} failed:`, await res.text());
+  if (!res.ok) {
+    console.error(`[bot] ${method} failed:`, await res.text());
+    return null;
+  }
   return res.json();
 }
 
