@@ -28,7 +28,7 @@ async function sendMessage(chatId: number | string, html: string, extra: object 
 const MAIN_KEYBOARD = {
   keyboard: [
     [{ text: "🚀 Open JobBase", web_app: { url: APP_URL } }],
-    [{ text: "📋 Browse Jobs" }, { text: "✨ AI Search" }],
+    [{ text: "🔍 Find Jobs" }, { text: "🤖 AI Job Search" }],
     [{ text: "❓ Help" }],
   ],
   resize_keyboard: true,
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
         break;
 
       case "/jobs":
-      case "📋 Browse Jobs":
+      case "🔍 Find Jobs":
         await sendMessage(
           chatId,
           `📋 <b>Browse live job listings</b> — filter by:\n` +
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
         break;
 
       case "/ai":
-      case "✨ AI Search":
+      case "🤖 AI Job Search":
         await sendMessage(
           chatId,
           `✨ <b>AI Context Search</b>\n\n` +
