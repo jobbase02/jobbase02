@@ -24,6 +24,17 @@ async function sendMessage(chatId: number | string, html: string, extra: object 
   return tg("sendMessage", { chat_id: chatId, text: html, parse_mode: "HTML", ...extra });
 }
 
+// ── Persistent reply keyboard (shown below text input) ───────────────────────
+const MAIN_KEYBOARD = {
+  keyboard: [
+    [{ text: "🚀 Open JobBase", web_app: { url: APP_URL } }],
+    [{ text: "📋 Browse Jobs" }, { text: "✨ AI Search" }],
+    [{ text: "❓ Help" }],
+  ],
+  resize_keyboard: true,
+  persistent: true,
+};
+
 // ── Web App inline button helper ──────────────────────────────────────────────
 function appButton(label = "🔍 Browse Jobs") {
   return { inline_keyboard: [[{ text: label, web_app: { url: APP_URL } }]] };
@@ -60,11 +71,12 @@ export async function POST(req: NextRequest) {
           `✨ <b>AI Context Search</b> — describe yourself, AI finds your best matches\n` +
           `📋 <b>100+ live listings</b> from TCS, Infosys, Amazon, Deloitte &amp; more\n\n` +
           `<i>Jobs refreshed daily. All listings link to the official apply page.</i>`,
-          { reply_markup: appButton("🚀 Open JobBase") }
+          { reply_markup: MAIN_KEYBOARD }
         );
         break;
 
       case "/jobs":
+      case "📋 Browse Jobs":
         await sendMessage(
           chatId,
           `📋 <b>Browse live job listings</b> — filter by:\n` +
@@ -78,6 +90,7 @@ export async function POST(req: NextRequest) {
         break;
 
       case "/ai":
+      case "✨ AI Search":
         await sendMessage(
           chatId,
           `✨ <b>AI Context Search</b>\n\n` +
@@ -88,28 +101,24 @@ export async function POST(req: NextRequest) {
         break;
 
       case "/help":
+      case "❓ Help":
         await sendMessage(
           chatId,
           `<b>How to use JobBase:</b>\n\n` +
-          `1️⃣ Tap <b>Browse Jobs</b> button or send /jobs\n` +
-          `2️⃣ Use the <b>Filter</b> button to narrow down results\n` +
-          `3️⃣ Switch to <b>AI Search</b> tab, describe your profile\n` +
-          `4️⃣ Tap <b>Apply Now</b> on any card — goes to the official page\n\n` +
-          `<b>Commands:</b>\n` +
-          `/jobs — Browse jobs\n` +
-          `/ai — Open AI search\n` +
-          `/help — This message`,
-          { reply_markup: appButton() }
+          `1️⃣ Tap <b>Open JobBase</b> button to launch the app\n` +
+          `2️⃣ Use <b>Browse Jobs</b> to filter by role, location &amp; batch\n` +
+          `3️⃣ Use <b>AI Search</b> to describe yourself &amp; get matched jobs\n` +
+          `4️⃣ Tap any card to go to the official apply page`,
+          { reply_markup: MAIN_KEYBOARD }
         );
         break;
 
       default:
-        // Any other message in private chat gets the app button
         if (message.chat.type === "private") {
           await sendMessage(
             chatId,
-            `Use the button below to browse jobs, or try /help for a guide.`,
-            { reply_markup: appButton() }
+            `Use the buttons below to get started 👇`,
+            { reply_markup: MAIN_KEYBOARD }
           );
         }
     }
