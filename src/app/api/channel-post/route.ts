@@ -65,21 +65,20 @@ export async function POST(req: NextRequest) {
       `\n━━━━━━━━━━━━━━━━\n` +
       `🤖 Find 100+ more jobs with AI-powered matching`;
 
-    await tg("sendMessage", {
+    const result = await tg("sendMessage", {
       chat_id:                  CHANNEL_ID,
       text,
       parse_mode:               "HTML",
       disable_web_page_preview: true,
       reply_markup: {
         inline_keyboard: [[
-          { text: "🤖 AI Job Search", web_app: { url: `${APP_URL}?tab=ai` } },
-          { text: "🔍 Browse All",    url: `https://t.me/${BOT_USERNAME}`  },
+          { text: "🤖 AI Job Search", url: `https://t.me/${BOT_USERNAME}` },
+          { text: "🔍 Browse All",    url: `https://t.me/${BOT_USERNAME}` },
         ]],
       },
     });
 
-    sent++;
-    // 1s delay between posts to avoid hitting Telegram rate limits
+    if (result) sent++;
     await new Promise(r => setTimeout(r, 1000));
   }
 

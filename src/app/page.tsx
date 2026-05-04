@@ -2,17 +2,15 @@
 
 import { useState, useEffect } from "react";
 import BrowseTab from "@/components/BrowseTab";
-import SearchTab from "@/components/SearchTab";
 import AISearchTab from "@/components/AISearchTab";
 import TabBar, { Tab } from "@/components/TabBar";
 
 export default function Page() {
   const [activeTab, setActiveTab] = useState<Tab>("browse");
 
-  // Read ?tab= on mount (works in Telegram WebApp without Suspense)
   useEffect(() => {
     const t = new URLSearchParams(window.location.search).get("tab");
-    if (t === "search" || t === "ai") setActiveTab(t);
+    if (t === "ai") setActiveTab("ai");
   }, []);
 
   const handleTabChange = (tab: Tab) => {
@@ -27,9 +25,6 @@ export default function Page() {
       <div className="flex-1 overflow-hidden">
         <div className={activeTab === "browse" ? "h-full" : "hidden h-full"}>
           <BrowseTab />
-        </div>
-        <div className={activeTab === "search" ? "h-full" : "hidden h-full"}>
-          <SearchTab />
         </div>
         <div className={activeTab === "ai" ? "h-full" : "hidden h-full"}>
           <AISearchTab />

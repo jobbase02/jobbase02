@@ -1,9 +1,9 @@
 "use client";
 
-import { LayoutGrid, Search, Sparkles } from "lucide-react";
+import { LayoutGrid, Sparkles } from "lucide-react";
 import { cn, haptic } from "@/lib/utils";
 
-export type Tab = "browse" | "search" | "ai";
+export type Tab = "browse" | "ai";
 
 interface TabBarProps {
   active: Tab;
@@ -11,9 +11,8 @@ interface TabBarProps {
 }
 
 const TABS: { id: Tab; label: string; Icon: typeof LayoutGrid }[] = [
-  { id: "browse", label: "Browse",     Icon: LayoutGrid },
-  { id: "search", label: "Search",     Icon: Search     },
-  { id: "ai",     label: "AI Search",  Icon: Sparkles   },
+  { id: "browse", label: "Browse",    Icon: LayoutGrid },
+  { id: "ai",     label: "AI Search", Icon: Sparkles   },
 ];
 
 export default function TabBar({ active, onChange }: TabBarProps) {
