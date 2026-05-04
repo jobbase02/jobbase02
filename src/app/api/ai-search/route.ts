@@ -31,9 +31,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { query } = await req.json();
+  let body: { query?: unknown };
+  try { body = await req.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
-  if (!query?.trim()) {
+  const query = typeof body.query === "string" ? body.query.trim().slice(0, 500) : "";
+  if (!query) {
     return NextResponse.json({ error: "query is required" }, { status: 400 });
   }
 

@@ -1,27 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import BrowseTab from "@/components/BrowseTab";
+import SearchTab from "@/components/SearchTab";
 import AISearchTab from "@/components/AISearchTab";
 import TabBar, { Tab } from "@/components/TabBar";
 
 export default function Page() {
   const [activeTab, setActiveTab] = useState<Tab>("browse");
 
+  // Read ?tab= on mount (works in Telegram WebApp without Suspense)
+  useEffect(() => {
+    const t = new URLSearchParams(window.location.search).get("tab");
+    if (t === "search" || t === "ai") setActiveTab(t);
+  }, []);
+
+  const handleTabChange = (tab: Tab) => {
+    setActiveTab(tab);
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", tab);
+    window.history.replaceState({}, "", url.toString());
+  };
+
   return (
     <main className="flex flex-col h-dvh overflow-hidden pt-safe">
-      {/* Tab content — fill remaining space, each tab manages its own scroll */}
       <div className="flex-1 overflow-hidden">
         <div className={activeTab === "browse" ? "h-full" : "hidden h-full"}>
           <BrowseTab />
+        </div>
+        <div className={activeTab === "search" ? "h-full" : "hidden h-full"}>
+          <SearchTab />
         </div>
         <div className={activeTab === "ai" ? "h-full" : "hidden h-full"}>
           <AISearchTab />
         </div>
       </div>
-
-      {/* Persistent bottom tab bar */}
-      <TabBar active={activeTab} onChange={setActiveTab} />
+      <TabBar active={activeTab} onChange={handleTabChange} />
     </main>
   );
 }

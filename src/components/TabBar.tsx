@@ -1,9 +1,9 @@
 "use client";
 
-import { LayoutGrid, Sparkles } from "lucide-react";
+import { LayoutGrid, Search, Sparkles } from "lucide-react";
 import { cn, haptic } from "@/lib/utils";
 
-export type Tab = "browse" | "ai";
+export type Tab = "browse" | "search" | "ai";
 
 interface TabBarProps {
   active: Tab;
@@ -11,8 +11,9 @@ interface TabBarProps {
 }
 
 const TABS: { id: Tab; label: string; Icon: typeof LayoutGrid }[] = [
-  { id: "browse", label: "Browse",    Icon: LayoutGrid },
-  { id: "ai",     label: "AI Search", Icon: Sparkles   },
+  { id: "browse", label: "Browse",     Icon: LayoutGrid },
+  { id: "search", label: "Search",     Icon: Search     },
+  { id: "ai",     label: "AI Search",  Icon: Sparkles   },
 ];
 
 export default function TabBar({ active, onChange }: TabBarProps) {
@@ -29,17 +30,11 @@ export default function TabBar({ active, onChange }: TabBarProps) {
               isActive ? "text-[var(--tg-button)]" : "text-[var(--tg-hint)]"
             )}
           >
-            <Icon
-              size={22}
-              strokeWidth={isActive ? 2.2 : 1.8}
-              className="transition-all"
-            />
+            <Icon size={22} strokeWidth={isActive ? 2.2 : 1.8} className="transition-all" />
             <span className={cn("text-[10px] font-medium", isActive && "font-semibold")}>
               {label}
             </span>
-            {isActive && (
-              <span className="w-1 h-1 rounded-full bg-[var(--tg-button)]" />
-            )}
+            {isActive && <span className="w-1 h-1 rounded-full bg-[var(--tg-button)]" />}
           </button>
         );
       })}
