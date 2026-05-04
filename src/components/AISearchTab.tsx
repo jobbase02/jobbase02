@@ -71,7 +71,7 @@ export default function AISearchTab() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      {/* Header */}
+      {/* Heaer */}
       <div className="px-5 py-4 border-b border-[var(--border)] bg-[var(--tg-bg)]/80 backdrop-blur-xl sticky top-0 z-10 shadow-sm">
         <div className="flex items-center gap-2">
           <Sparkles size={20} className="text-[var(--tg-button)]" />
