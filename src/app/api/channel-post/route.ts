@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase";
 
-const BOT_TOKEN          = process.env.BOT_TOKEN!;
-const CHANNEL_ID         = process.env.TELEGRAM_CHANNEL_ID ?? "";
+const BOT_TOKEN           = process.env.BOT_TOKEN!;
+const CHANNEL_ID          = process.env.TELEGRAM_CHANNEL_ID ?? "";
 const CHANNEL_POST_SECRET = process.env.CHANNEL_POST_SECRET ?? "";
-const APP_URL            = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "");
-const BOT_USERNAME       = process.env.BOT_USERNAME ?? "jobbase02_bot";
+const BOT_USERNAME        = process.env.BOT_USERNAME ?? "jobbase02_bot";
+
+// Platform job board domains — jobs from these are excluded from channel posts
+const PLATFORM_DOMAINS = [
+  "naukri.com", "internshala.com", "unstop.com", "indeed.com",
+  "linkedin.com", "hirist.tech", "wellfound.com", "instahyre.com",
+];
 
 async function tg(method: string, body: object) {
   const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/${method}`, {
@@ -21,8 +26,7 @@ async function tg(method: string, body: object) {
 }
 
 // POST /api/channel-post
-// Called by the scraper after each run to push the latest jobs to the channel.
-// Body: { count?: number }   (default 5, max 10)
+// Sends 4 shuffled company-sourced jobs (one per company) to the channel.
 // Auth: x-api-key header must match CHANNEL_POST_SECRET
 export async function POST(req: NextRequest) {
   const apiKey = req.headers.get("x-api-key");
@@ -34,26 +38,43 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "TELEGRAM_CHANNEL_ID not configured" }, { status: 500 });
   }
 
-  let count = 5;
-  try {
-    const body = await req.json();
-    count = Math.min(10, Math.max(1, parseInt(body.count ?? "5")));
-  } catch { /* use default */ }
-
   const supabase = createAdminClient();
-  const { data: jobs, error } = await supabase
+
+  // Fetch recent jobs — pull enough to have variety after filtering
+  const { data: raw, error } = await supabase
     .from("jobs")
-    .select("title, company, location, role_category, batch_eligible, experience_required, apply_link")
+    .select("title, company, location, role_category, batch_eligible, experience_required, apply_link, source_url")
     .eq("is_active", true)
     .order("created_at", { ascending: false })
-    .limit(count);
+    .limit(80);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // Keep only company-sourced jobs (exclude platform job boards)
+  const companyJobs = (raw ?? []).filter(job => {
+    const src = (job.source_url ?? job.apply_link ?? "").toLowerCase();
+    return !PLATFORM_DOMAINS.some(d => src.includes(d));
+  });
+
+  // Shuffle
+  for (let i = companyJobs.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [companyJobs[i], companyJobs[j]] = [companyJobs[j], companyJobs[i]];
+  }
+
+  // Pick at most 1 job per company, take first 4
+  const seenCompanies = new Set<string>();
+  const selected = companyJobs.filter(job => {
+    const key = job.company.toLowerCase().trim();
+    if (seenCompanies.has(key)) return false;
+    seenCompanies.add(key);
+    return true;
+  }).slice(0, 4);
+
   let sent = 0;
-  for (const job of jobs ?? []) {
+  for (const job of selected) {
     const batches = (job.batch_eligible ?? []).filter(Boolean).join(", ");
 
     const text =
@@ -63,7 +84,7 @@ export async function POST(req: NextRequest) {
       (job.experience_required ? `💼 ${job.experience_required}\n` : "") +
       `\n🔗 <a href="${job.apply_link}">Apply Now →</a>\n` +
       `\n━━━━━━━━━━━━━━━━\n` +
-      `🤖 Find 100+ more jobs with AI-powered matching`;
+      `🤖 Find 100+ more jobs with AI-powered search`;
 
     const result = await tg("sendMessage", {
       chat_id:                  CHANNEL_ID,
